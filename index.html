@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal VIP Member & Reservasi - Padel Boss Mengger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; }
+    #loginId { text-transform: uppercase; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    .vip-card, .login-box-boss {
+      width: 100%; max-width: 420px; 
+      background: radial-gradient(circle at center, #133a25 0%, #081c10 100%);
+      border: 3px solid #d4af37; border-radius: 18px; padding: 22px; color: #f3e5ab; 
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(212,175,55,0.25); 
+      position: relative; overflow: hidden; margin: 0 auto; box-sizing: border-box;
+    }
+    .vip-card::before, .login-box-boss::before {
+      content: ""; position: absolute; inset: 0; 
+      background-image: radial-gradient(rgba(212,175,55,0.06) 1px, transparent 1px);
+      background-size: 20px 20px; pointer-events: none; z-index: 1;
+    }
+    .vip-card::after, .login-box-boss::after { content: "🎾"; position: absolute; right: -5px; bottom: -10px; font-size: 110px; opacity: 0.06; pointer-events: none; z-index: 1; }
+
+    .card-header-vip { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; margin-bottom: 10px; position: relative; z-index: 2; }
+    .vip-badge-box { border: 1.5px solid #d4af37; padding: 6px 14px; border-radius: 6px; background: rgba(13,40,24,0.6); }
+    .vip-badge-text { font-size: 11.5px; font-weight: 800; color: #d4af37; letter-spacing: 1.5px; text-transform: uppercase; }
+    
+    .card-logo-container { height: 44px; display: flex; align-items: center; justify-content: flex-end; position: relative; z-index: 2; }
+    .card-logo-img { height: 75px; width: auto; object-fit: contain; mix-blend-mode: screen; transform: scale(1.4); transform-origin: center right; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+    
+    .card-divider { border: none; border-top: 1.5px solid rgba(212, 175, 55, 0.4); margin: 0 0 16px 0; position: relative; z-index: 2; }
+
+    .card-main-content { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; position: relative; z-index: 2; }
+    
+    .member-photo-frame { 
+      width: 105px; height: 130px; border: 2px solid #d4af37; border-radius: 12px 12px 6px 6px; 
+      overflow: hidden; background: #000; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4); position: relative;
+    }
+    .member-photo-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; background-color: #000; }
+    
+    .btn-upload-overlay {
+      position: absolute; bottom: 0; inset-x: 0; background: rgba(13, 40, 24, 0.85); color: #f3e5ab;
+      font-size: 9.5px; font-weight: bold; text-align: center; padding: 4px 0; cursor: pointer; border-top: 1px solid #d4af37;
+      transition: background 0.2s;
+    }
+    .btn-upload-overlay:hover { background: #0d2818; color: #ffffff; }
+
+    .member-info-right { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: left; position: relative; z-index: 2; }
+    .member-id-vip { font-size: 18px; font-weight: 800; color: #d4af37; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .member-name-vip { font-size: 15px; font-weight: 800; color: #ffffff; text-transform: uppercase; margin-bottom: 8px; line-height: 1.25; word-break: break-word; }
+    .member-meta-info { font-size: 11px; color: #dcdcdc; line-height: 1.5; }
+    .member-meta-info strong { color: #f3e5ab; }
+    
+    .card-footer-vip { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; border-top: 1px solid rgba(212, 175, 55, 0.3); padding-top: 10px; color: #b5c4b1; position: relative; z-index: 2; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-start">
+
+  <!-- 1. LOGIN MEMBER -->
+  <div id="loginSection" class="login-box-boss text-center mt-16">
+    <div class="card-header-vip">
+      <div class="vip-badge-box">
+        <span class="vip-badge-text">VIP PORTAL</span>
+      </div>
+      <div class="card-logo-container">
+        <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
+      </div>
+    </div>
+
+    <hr class="card-divider">
+
+    <div class="space-y-3.5 text-left mb-6 relative z-25">
+      <div>
+        <label class="block text-xs font-bold text-[#f3e5ab] mb-1">ID Member:</label>
+        <input type="text" id="loginId" placeholder="CONTOH: PB0014" class="w-full p-2.5 bg-black/40 border border-[#d4af37]/40 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#d4af37]">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#f3e5ab] mb-1">Nomor WhatsApp:</label>
+        <input type="number" id="loginWa" placeholder="Contoh: 628***********" class="w-full p-2.5 bg-black/40 border border-[#d4af37]/40 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#d4af37]">
+      </div>
+    </div>
+
+    <button onclick="prosesLogin()" class="w-full py-3 bg-gradient-to-r from-[#d4af37] to-[#e6ca65] hover:from-[#c19b2e] hover:to-[#d4af37] text-[#0d2818] font-black rounded-xl shadow-lg transition text-sm relative z-20 cursor-pointer">
+      Masuk Membership
+    </button>
+    <div id="loginError" class="text-xs text-red-300 font-semibold mt-3 hidden relative z-20">ID Member atau Nomor WhatsApp salah!</div>
+  </div>
+
+  <!-- 2. DASHBOARD SETELAH LOGIN -->
+  <div id="dashboardSection" class="hidden pb-20 w-full">
+    <header class="bg-[#0d2818] text-white sticky top-0 z-40 shadow-md border-b border-emerald-800">
+      <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-2">
+        <div class="flex items-center space-x-2">
+          <div class="bg-emerald-950 px-2 py-0.5 rounded-lg border border-emerald-800 flex items-center justify-center">
+            <img src="boss.png" alt="Logo Padel Boss" style="height: 28px; width: auto; object-fit: contain; mix-blend-mode: screen;" onerror="this.onerror=null; this.src='/boss.png';">
+          </div>
+          <div>
+            <h1 class="font-black text-xs text-amber-300 tracking-wider">PADEL BOSS MENGGER</h1>
+            <p id="top-member-badge" class="text-[10px] text-emerald-200">Memuat data...</p>
+          </div>
+        </div>
+
+        <div class="flex items-center bg-emerald-950 p-1 rounded-xl border border-emerald-800">
+          <button id="tab-btn-card" onclick="switchTab('card')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-[#d4af37] text-[#0d2818] shadow">
+            💳 Kartu VIP
+          </button>
+          <button id="tab-btn-riwayat" onclick="switchTab('riwayat')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-emerald-200 hover:text-white">
+            📋 Riwayat Booking
+          </button>
+        </div>
+
+        <button onclick="logoutMember()" class="bg-red-600/80 hover:bg-red-700 text-white text-[11px] px-2.5 py-1 rounded-lg font-bold transition">
+          Keluar
+        </button>
+      </div>
+    </header>
+
+    <!-- TAB 1: KARTU VIP MEMBER -->
+    <div id="tab-content-card" class="max-w-md mx-auto px-4 mt-8 space-y-5">
+      <div id="memberCardContainer"></div>
+
+      <input type="file" id="inputUploadFoto" accept="image/*" class="hidden" onchange="prosesUploadFoto(this)">
+
+      <div class="space-y-2.5 text-center">
+        <button onclick="downloadKartuPDF()" class="w-full bg-[#0d2818] hover:bg-[#14382d] text-[#f3e5ab] py-3 rounded-xl font-bold text-xs shadow border border-[#d4af37] transition flex items-center justify-center gap-2">
+          📥 Download Kartu PDF
+        </button>
+        <button onclick="switchTab('booking')" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3 rounded-xl font-bold text-xs shadow transition flex items-center justify-center gap-2">
+          📅 Booking Lapangan (Pilih Jadwal)
+        </button>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-left text-xs">
+        <h4 class="font-bold text-[#0d2818] border-b border-slate-200 pb-1.5 mb-2">Benefit Spesial Membership:</h4>
+        <ul class="space-y-1.5 text-slate-600">
+          <li>☀️ Pagi (06:00 - 18:00): <strong class="text-emerald-700">Rp 69.000 / jam</strong></li>
+          <li>🌙 Malam (18:00 - 22:00): <strong class="text-emerald-700">Rp 99.000 / jam</strong></li>
+          <li>💬 Booking Manual Admin: <strong>+62 851-3806-0260</strong></li>
+          <li>🏦 Rekening Resmi: BCA <strong>0856-288-999</strong> a/n Shirleen Yovita W or Deasy Liunardo</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TAB 2: BOOKING LAPANGAN -->
+    <div id="tab-content-booking" class="max-w-5xl mx-auto px-4 mt-5 space-y-5 hidden">
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="flex items-center space-x-2 w-full md:w-auto">
+          <label class="text-xs font-bold text-slate-600">Lokasi:</label>
+          <select id="select-lokasi" onchange="gantiLokasi()" class="p-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-xs">
+            <option value="boss_mengger">Padel Boss Mengger (Court 1 - 5)</option>
+            <option value="del_luna">Padel Del Luna</option>
+          </select>
+        </div>
+        <div id="baris-tanggal" class="flex space-x-1.5 overflow-x-auto w-full md:w-auto pb-1 scrollbar-none"></div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto max-h-[480px]">
+          <table id="tabel-matriks" class="w-full text-center text-xs border-collapse table-fixed min-w-[620px]"></table>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-xs space-y-1 text-center md:text-left">
+          <div><span class="text-slate-500">Status Slot:</span> <strong id="ringkasan-jadwal" class="text-emerald-800">Belum ada slot dipilih</strong></div>
+          <div><span class="text-slate-500">Total Biaya:</span> <strong id="ringkasan-total" class="text-sm font-black text-emerald-700">Rp 0</strong></div>
+        </div>
+        <button onclick="bukaModalKonfirmasi()" class="w-full md:w-auto bg-[#0d2818] hover:bg-[#14382d] text-[#f3e5ab] px-8 py-2.5 rounded-xl font-bold text-xs transition shadow">
+          ⚡ Konfirmasi & Booking
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 3: RIWAYAT BOOKING -->
+    <div id="tab-content-riwayat" class="max-w-5xl mx-auto px-4 mt-5 space-y-5 hidden">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-xs uppercase text-slate-600 tracking-wider">📋 Riwayat Booking & Status Lapangan</h3>
+          <button onclick="muatRiwayatMember()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">🔄 Refresh</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-600 border-b">
+                <th class="p-2.5">ID Booking</th>
+                <th class="p-2.5">Tanggal Main</th>
+                <th class="p-2.5">Lokasi & Jam Main</th>
+                <th class="p-2.5">Total Bayar</th>
+                <th class="p-2.5 text-center">Booked</th>
+                <th class="p-2.5 text-center">Payment</th>
+                <th class="p-2.5 text-center">Invoice</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-riwayat-booking">
+              <tr><td colspan="7" class="p-3 text-center text-slate-400">Memuat riwayat booking...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL JAM MAIN -->
+  <div id="modalDetailJamMember" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 text-left space-y-4 shadow-xl">
+      <h3 id="modalMemberIdBooking" class="font-bold text-sm text-[#0d2818] border-b pb-2">Rincian Jam Main</h3>
+      <div id="modalMemberIsiJam" class="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed space-y-2"></div>
+      <button onclick="tutupModalDetailMember()" class="w-full py-2.5 bg-[#0d2818] hover:bg-[#14382d] font-bold text-xs rounded-xl text-[#f3e5ab]">Tutup</button>
+    </div>
+  </div>
+
+  <!-- MODAL PREVIEW INVOICE -->
+  <div id="modalPreviewInvoice" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 text-left space-y-4 shadow-2xl max-h-[95vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-black text-sm text-[#0d2818] uppercase tracking-wide">🧾 Preview Invoice Booking</h3>
+        <button onclick="tutupModalPreviewInvoice()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">×</button>
+      </div>
+
+      <div id="invoiceContainer" style="background: radial-gradient(circle at center, #133a25 0%, #081c10 100%); padding: 25px; font-family: 'Segoe UI', Tahoma, sans-serif; color: #f3e5ab; border: 3px solid #d4af37; border-radius: 18px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
+        
+        <div id="watermarkPaid" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 85px; font-weight: 900; color: rgba(212, 175, 55, 0.12); border: 6px solid rgba(212, 175, 55, 0.15); border-radius: 16px; padding: 10px 35px; letter-spacing: 6px; pointer-events: none; z-index: 10; text-transform: uppercase;">
+          PAID
+        </div>
+
+        <div class="card-header-vip">
+          <div class="vip-badge-box">
+            <span class="vip-badge-text">INVOICE</span>
+          </div>
+          <div class="card-logo-container">
+            <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
+          </div>
+        </div>
+
+        <hr class="card-divider">
+
+        <div style="margin-bottom: 15px; font-size: 11.5px; line-height: 1.5; position: relative; z-index: 2; color: #dcdcdc;">
+          <table style="width: 100%;">
+            <tr>
+              <td style="width: 50%;"><strong>ID Booking:</strong> <span id="inv-id" style="color: #d4af37; font-weight: bold;"></span></td>
+              <td><strong>Tanggal Pesan:</strong> <span id="inv-tgl-pesan" style="color: #f3e5ab;"></span></td>
+            </tr>
+            <tr>
+              <td><strong>Nama Member:</strong> <span id="inv-nama" style="color: #ffffff; text-transform: uppercase;"></span></td>
+              <td><strong>Lokasi:</strong> <span id="inv-lokasi" style="color: #f3e5ab;"></span></td>
+            </tr>
+            <tr>
+              <td><strong>ID Member:</strong> <span id="inv-id-member" style="color: #d4af37; font-weight: bold;"></span></td>
+              <td><strong>No WhatsApp:</strong> <span id="inv-wa" style="color: #f3e5ab;"></span></td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="margin-bottom: 15px; position: relative; z-index: 2;">
+          <h4 style="margin: 0 0 6px 0; font-size: 11.5px; color: #d4af37; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Rincian Lapangan & Jam</h4>
+          <div id="inv-rincian-tabel" style="border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px; padding: 10px; font-size: 11.5px; background: rgba(0,0,0,0.25); line-height: 1.4; color: #f3e5ab;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px solid rgba(212, 175, 55, 0.4); padding-top: 12px; font-size: 13px; position: relative; z-index: 2;">
+          <div>
+            <span style="font-size: 10px; color: #b5c4b1; display: block;">Status Pembayaran:</span>
+            <strong id="inv-status-payment" style="color: #2ecc71;">PAID</strong>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 10px; color: #b5c4b1; display: block;">Total Pembayaran:</span>
+            <strong id="inv-total" style="font-size: 16px; color: #d4af37;"></strong>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center; font-size: 9.5px; color: #b5c4b1; border-top: 1px dashed rgba(212, 175, 55, 0.3); padding-top: 8px; position: relative; z-index: 2;">
+          Official Invoice - Padel Boss Mengger & Del Luna<br>Harap tunjukkan invoice ini kepada staf saat tiba di lokasi. 🎾
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button onclick="tutupModalPreviewInvoice()" class="w-1/2 py-2.5 bg-slate-200 hover:bg-slate-300 font-bold text-xs rounded-xl text-slate-700">Tutup</button>
+        <button onclick="eksekusiDownloadPDF()" class="w-1/2 py-2.5 bg-[#0d2818] hover:bg-[#14382d] font-bold text-xs rounded-xl text-[#f3e5ab]">📥 Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI -->
+  <div id="modalKonfirmasi" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 text-left space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h3 class="font-black text-sm text-[#0d2818] border-b pb-2 uppercase tracking-wide">🧾 Rincian & Konfirmasi Pembayaran</h3>
+      
+      <div class="text-xs space-y-2">
+        <div>
+          <span class="text-slate-600 block mb-1">Rincian Tanggal, Court, Jam & Harga:</span>
+          <div id="konfirm-rincian-court" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-slate-700"></div>
+        </div>
+        <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-emerald-900 font-bold">
+          <span>Total Pembayaran:</span>
+          <span id="konfirm-total-harga" class="text-sm font-black">Rp 0</span>
+        </div>
+      </div>
+
+      <div class="text-xs text-slate-700 bg-amber-50 p-3.5 rounded-xl border border-amber-300 space-y-1">
+        <p class="font-bold text-amber-900 text-sm mb-1.5">Silakan Transfer ke:</p>
+        <p>BCA: <strong class="text-base text-[#0d2818] tracking-wide">0856-288-999</strong></p>
+        <p>A/N: <strong class="font-black text-slate-900">Shirleen Yovita Wijaya or Deasy Liunardo</strong></p>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-700 mb-1">Upload Bukti Transfer (Wajib):</label>
+        <input type="file" id="fileBukti" accept="image/*" class="w-full text-xs border border-slate-300 p-2 rounded-xl bg-slate-50">
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button onclick="tutupModalKonfirmasi()" class="w-1/2 py-2.5 bg-slate-200 hover:bg-slate-300 font-bold text-xs rounded-xl text-slate-700">Batal</button>
+        <button onclick="kirimBookingDanBukti()" class="w-1/2 py-2.5 bg-[#0d2818] hover:bg-[#14382d] font-bold text-xs rounded-xl text-[#f3e5ab]">Kirim & Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lokasiAktif = "boss_mengger";
+    let tanggalAktif = "";
+    let slotTerpakai = [];
+    let keranjangPilihan = [];
+    let currentActiveBookingForPdf = null;
+    let activeMemberData = null;
+
+    const fotoDatabase = {
+      "PB0041": "PB0041.png", "PB0042": "PB0042.png", "PB0043": "PB0043.png",
+      "PB0044": "PB0044.png", "PB0045": "PB0045.png", "PB0047": "PB0047.png",
+      "PB0048": "PB0048.png", "PB0051": "PB0051.jpeg"
+    };
+
+    const jamOperasional = [
+      "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", 
+      "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", 
+      "18:00", "19:00", "20:00", "21:00", "22:00"
+    ];
+    const daftarCourt = ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5"];
+
+    async function prosesLogin() {
+      const id_member = document.getElementById('loginId').value.trim().toUpperCase();
+      const no_wa = document.getElementById('loginWa').value.trim();
+      const errorDiv = document.getElementById('loginError');
+
+      if (!id_member || !no_wa) {
+        errorDiv.innerText = "Harap isi ID Member dan Nomor WhatsApp!";
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_member, no_wa })
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          errorDiv.classList.add('hidden');
+          activeMemberData = result.data;
+          document.getElementById('loginSection').classList.add('hidden');
+          document.getElementById('dashboardSection').classList.remove('hidden');
+
+          tampilkanKartuMember(activeMemberData);
+          inisialisasiBooking();
+        } else {
+          errorDiv.innerText = result.message || "ID Member atau Nomor WhatsApp salah!";
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorDiv.innerText = "Gagal terhubung ke backend server.";
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function logoutMember() {
+      activeMemberData = null;
+      document.getElementById('loginSection').classList.remove('hidden');
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('loginId').value = '';
+      document.getElementById('loginWa').value = '';
+    }
+
+    function switchTab(tab) {
+      const btnCard = document.getElementById('tab-btn-card');
+      const btnRiwayat = document.getElementById('tab-btn-riwayat');
+      
+      const contentCard = document.getElementById('tab-content-card');
+      const contentBooking = document.getElementById('tab-content-booking');
+      const contentRiwayat = document.getElementById('tab-content-riwayat');
+
+      btnCard.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-emerald-200 hover:text-white";
+      btnRiwayat.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition text-emerald-200 hover:text-white";
+
+      contentCard.classList.add('hidden');
+      contentBooking.classList.add('hidden');
+      contentRiwayat.classList.add('hidden');
+
+      if (tab === 'card') {
+        btnCard.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-[#d4af37] text-[#0d2818] shadow";
+        contentCard.classList.remove('hidden');
+      } else if (tab === 'booking') {
+        contentBooking.classList.remove('hidden');
+        muatDataBookingHari();
+      } else if (tab === 'riwayat') {
+        btnRiwayat.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-[#d4af37] text-[#0d2818] shadow";
+        contentRiwayat.classList.remove('hidden');
+        muatRiwayatMember();
+      }
+    }
+
+    function tampilkanKartuMember(m) {
+      document.getElementById('top-member-badge').innerText = `${m.nama_member} (${m.id_member})`;
+      
+      // Prioritas foto: Foto yang di-upload member sendiri di database > fotoDatabase statis > placeholder
+      let fotoSrc = m.foto || fotoDatabase[m.id_member] || 'https://via.placeholder.com/100x125?text=Foto';
+      const statusColor = m.status === 'Aktif' ? '#2ecc71' : '#e74c3c';
+
+      document.getElementById('memberCardContainer').innerHTML = `
+        <div id="kartuPdfTarget">
+          <div class="vip-card">
+            <div class="card-header-vip">
+              <div class="vip-badge-box">
+                <span class="vip-badge-text">MEMBERSHIP</span>
+              </div>
+              <div class="card-logo-container">
+                <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
+              </div>
+            </div>
+            
+            <hr class="card-divider">
+
+            <div class="card-main-content">
+              <div class="member-photo-frame">
+                <img id="imgPreviewMember" src="${fotoSrc}" alt="Foto Member" onerror="this.src='https://via.placeholder.com/100x125?text=Foto'">
+                <div class="btn-upload-overlay" onclick="triggerUploadFoto()">Ganti Foto</div>
+              </div>
+              <div class="member-info-right">
+                <div class="member-id-vip">${m.id_member}</div>
+                <div class="member-name-vip">${m.nama_member}</div>
+                <div class="member-meta-info">
+                  <div>No WhatsApp: <strong>${m.no_wa}</strong></div>
+                  <div>Tgl Expired: <strong>${m.tgl_expired}</strong></div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer-vip">
+              <span>Official Membership Card - Padel Boss</span>
+              <strong style="color: ${statusColor};">${m.status.toUpperCase()}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function triggerUploadFoto() {
+      document.getElementById('inputUploadFoto').click();
+    }
+
+    async function prosesUploadFoto(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Foto = e.target.result;
+
+        try {
+          const res = await fetch('/api/member/foto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_member: activeMemberData.id_member, foto: base64Foto })
+          });
+          const result = await res.json();
+
+          if (result.success) {
+            activeMemberData = result.data;
+            tampilkanKartuMember(activeMemberData);
+            alert("✅ Foto profil berhasil diperbarui!");
+          } else {
+            alert("Gagal mengunggah foto: " + result.error);
+          }
+        } catch (err) {
+          alert("Terjadi kesalahan saat mengunggah foto.");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function downloadKartuPDF() {
+      const element = document.getElementById('kartuPdfTarget');
+      const opt = {
+        margin:       10,
+        filename:     `Kartu_VIP_${activeMemberData.id_member}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+
+    function getHargaMemberByJam(jam) {
+      const jamInt = parseInt(jam.split(':')[0], 10);
+      return (jamInt >= 18 && jamInt <= 22) ? 99000 : 69000;
+    }
+
+    function inisialisasiBooking() {
+      const today = new Date();
+      tanggalAktif = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(today);
+      renderHorizontalDatepicker();
+      muatDataBookingHari();
+    }
+
+    function renderHorizontalDatepicker() {
+      const container = document.getElementById('baris-tanggal');
+      container.innerHTML = '';
+      const hariArr = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const tglStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+        const namaHari = hariArr[d.getDay()];
+        const tglAngka = d.getDate();
+        const isSelected = tglStr === tanggalAktif;
+
+        container.innerHTML += `
+          <button onclick="pilihTanggal('${tglStr}')" class="flex flex-col items-center justify-center min-w-[50px] py-1.5 px-2 rounded-lg border text-[11px] transition ${isSelected ? 'bg-[#0d2818] text-[#f3e5ab] border-[#d4af37] font-bold' : 'bg-slate-50 text-slate-600 border-slate-200'}">
+            <span class="opacity-80">${namaHari}</span>
+            <span class="font-black text-xs">${tglAngka}</span>
+          </button>
+        `;
+      }
+    }
+
+    function pilihTanggal(tgl) {
+      tanggalAktif = tgl;
+      renderHorizontalDatepicker();
+      muatDataBookingHari();
+    }
+
+    function gantiLokasi() {
+      lokasiAktif = document.getElementById('select-lokasi').value;
+      muatDataBookingHari();
+    }
+
+    async function muatDataBookingHari() {
+      keranjangPilihan = [];
+      updateRingkasan();
+      try {
+        const res = await fetch(`/api/booking/terpakai?tanggal=${tanggalAktif}`);
+        slotTerpakai = res.ok ? await res.json() : [];
+      } catch (err) {
+        slotTerpakai = [];
+      }
+      renderMatriksJadwal();
+    }
+
+    function renderMatriksJadwal() {
+      const tabel = document.getElementById('tabel-matriks');
+      const namaLokasiTerpilih = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
+
+      let htmlHeader = `
+        <thead>
+          <tr class="bg-slate-100 text-slate-600 border-b sticky top-0 z-10">
+            <th class="p-2.5 w-[75px] font-bold">Jam</th>
+      `;
+      daftarCourt.forEach(c => {
+        htmlHeader += `<th class="p-2.5 border-l text-[#0d2818] font-bold">${c}</th>`;
+      });
+      htmlHeader += `</tr></thead><tbody>`;
+
+      let htmlBody = '';
+      jamOperasional.forEach(jam => {
+        const hargaSlot = getHargaMemberByJam(jam);
+        const labelHarga = hargaSlot.toLocaleString('id-ID');
+
+        htmlBody += `<tr class="border-b border-slate-100 hover:bg-slate-50/50">`;
+        htmlBody += `<td class="p-2 font-bold text-slate-600 bg-slate-50 border-r text-[11px]">${jam}</td>`;
+
+        daftarCourt.forEach(court => {
+          let isBooked = slotTerpakai.some(b => b.lokasi === namaLokasiTerpilih && b.detail_jam && b.detail_jam.includes(`${court} [${jam}`));
+          const isSelected = keranjangPilihan.some(k => k.court === court && k.jam === jam);
+
+          if (isBooked) {
+            htmlBody += `
+              <td class="p-1.5 border-l">
+                <div class="bg-slate-100 text-slate-400 py-2 rounded-lg cursor-not-allowed text-[11px] font-semibold">
+                  Booked
+                </div>
+              </td>
+            `;
+          } else {
+            htmlBody += `
+              <td class="p-1.5 border-l">
+                <div onclick="togglePilihSlot('${court}', '${jam}', ${hargaSlot})" class="py-2 rounded-lg cursor-pointer transition border text-[11px] font-bold tracking-tight ${isSelected ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-500 hover:bg-slate-50'}">
+                  ${labelHarga} ${isSelected ? '✓' : ''}
+                </div>
+              </td>
+            `;
+          }
+        });
+        htmlBody += `</tr>`;
+      });
+
+      tabel.innerHTML = htmlHeader + htmlBody + `</tbody>`;
+    }
+
+    function togglePilihSlot(court, jam, harga) {
+      const idx = keranjangPilihan.findIndex(k => k.court === court && k.jam === jam);
+      if (idx >= 0) keranjangPilihan.splice(idx, 1);
+      else keranjangPilihan.push({ court, jam, harga });
+      renderMatriksJadwal();
+      updateRingkasan();
+    }
+
+    function formatDetailJamWithPrice(tanggal, detail_jam_str) {
+      if (!detail_jam_str) return `📅 Tanggal Main: ${tanggal}`;
+      
+      const regex = /(Court \d+)\s*\[(\d{2}:\d{2})\]/g;
+      let match;
+      let groupMap = {};
+      let grandTotal = 0;
+      let totalJamAll = 0;
+
+      while ((match = regex.exec(detail_jam_str)) !== null) {
+        let court = match[1];
+        let jam = match[2];
+        let harga = getHargaMemberByJam(jam);
+        let key = `${court}_${harga}`;
+
+        if (!groupMap[key]) {
+          groupMap[key] = { court: court, hargaSatuan: harga, times: [], totalCourt: 0 };
+        }
+        groupMap[key].times.push(jam);
+        groupMap[key].totalCourt += harga;
+        grandTotal += harga;
+        totalJamAll++;
+      }
+
+      let keys = Object.keys(groupMap).sort((a, b) => {
+        let cA = groupMap[a].court;
+        let cB = groupMap[b].court;
+        return (parseInt(cA.replace(/\D/g, '')) || 0) - (parseInt(cB.replace(/\D/g, '')) || 0);
+      });
+
+      let parts = [`<div style="margin-bottom: 6px; font-weight: bold; color: #d4af37;">📅 Tanggal Main: ${tanggal}</div>`];
+      
+      keys.forEach(k => {
+        let item = groupMap[k];
+        let sortedTimes = item.times.sort();
+        let startTime = sortedTimes[0];
+        let lastTime = sortedTimes[sortedTimes.length - 1];
+        let [hEnd, mEnd] = lastTime.split(':').map(Number);
+        hEnd += 1;
+        let endTime = `${String(hEnd).padStart(2, '0')}:${String(mEnd).padStart(2, '0')}`;
+        let jumlahJam = sortedTimes.length;
+        
+        parts.push(`<div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 4px 0; border-bottom: 1px solid rgba(212,175,55,0.2);">
+          <div>
+            <strong style="color: #ffffff;">${item.court}</strong> (${startTime} – ${endTime})<br>
+            <span style="font-size: 10px; color: #b5c4b1;">${jumlahJam} jam × Rp ${item.hargaSatuan.toLocaleString('id-ID')}</span>
+          </div>
+          <div style="text-align: right; align-self: center;">
+            <span style="color: #f3e5ab; font-weight: bold;">Rp ${item.totalCourt.toLocaleString('id-ID')}</span>
+          </div>
+        </div>`);
+      });
+
+      parts.push(`<div style="display: flex; justify-content: space-between; font-size: 12px; color: #b5c4b1; margin-top: 8px;">
+        <span>Total Durasi Main:</span>
+        <strong style="color: #ffffff;">${totalJamAll} Jam</strong>
+      </div>`);
+
+      parts.push(`<div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; color: #d4af37; margin-top: 4px; padding-top: 6px; border-top: 1.5px solid rgba(212,175,55,0.4);">
+        <span>Total Keseluruhan:</span>
+        <span style="color: #f3e5ab;">Rp ${grandTotal.toLocaleString('id-ID')}</span>
+      </div>`);
+
+      return parts.join('');
+    }
+
+    function updateRingkasan() {
+      if (keranjangPilihan.length === 0) {
+        document.getElementById('ringkasan-jadwal').innerText = "Belum ada slot dipilih";
+        document.getElementById('ringkasan-total').innerText = "Rp 0";
+        return;
+      }
+      let totalSlot = keranjangPilihan.length;
+      let totalHarga = keranjangPilihan.reduce((acc, curr) => acc + curr.harga, 0);
+      document.getElementById('ringkasan-jadwal').innerText = `${totalSlot} slot lapangan dipilih (${tanggalAktif})`;
+      document.getElementById('ringkasan-total').innerText = `Rp ${totalHarga.toLocaleString('id-ID')}`;
+    }
+
+    function bukaModalKonfirmasi() {
+      if (keranjangPilihan.length === 0) {
+        alert("Pilih minimal 1 slot lapangan terlebih dahulu!");
+        return;
+      }
+
+      let groupMap = {};
+      let totalHarga = 0;
+      let totalJamAll = 0;
+
+      keranjangPilihan.forEach(k => {
+        let key = `${k.court}_${k.harga}`;
+        if (!groupMap[key]) {
+          groupMap[key] = { court: k.court, hargaSatuan: k.harga, jamList: [], totalCourt: 0 };
+        }
+        groupMap[key].jamList.push(k.jam);
+        groupMap[key].totalCourt += k.harga;
+        totalHarga += k.harga;
+        totalJamAll++;
+      });
+
+      let sortedKeys = Object.keys(groupMap).sort((a, b) => {
+        let cA = groupMap[a].court;
+        let cB = groupMap[b].court;
+        return (parseInt(cA.replace(/\D/g, '')) || 0) - (parseInt(cB.replace(/\D/g, '')) || 0);
+      });
+
+      let rincianHtml = `<div class="font-bold text-[#0d2818] mb-1.5 pb-1 border-b">📅 Tanggal Main: ${tanggalAktif}</div>`;
+      sortedKeys.forEach(k => {
+        let item = groupMap[k];
+        let sortedJam = item.jamList.sort();
+        let startTime = sortedJam[0];
+        let lastTime = sortedJam[sortedJam.length - 1];
+        let [hEnd, mEnd] = lastTime.split(':').map(Number);
+        hEnd += 1;
+        let endTime = `${String(hEnd).padStart(2, '0')}:${String(mEnd).padStart(2, '0')}`;
+        let jml = sortedJam.length;
+
+        rincianHtml += `<div class="flex justify-between text-xs py-1.5 border-b border-slate-100">
+          <div>
+            <strong>${item.court}</strong> (${startTime} – ${endTime})<br>
+            <span class="text-[10px] text-slate-500">${jml} jam × Rp ${item.hargaSatuan.toLocaleString('id-ID')}</span>
+          </div>
+          <div class="text-right font-bold text-emerald-800 self-center">Rp ${item.totalCourt.toLocaleString('id-ID')}</div>
+        </div>`;
+      });
+
+      rincianHtml += `<div class="flex justify-between text-xs font-bold pt-1 text-slate-600">
+        <span>Total Durasi: ${totalJamAll} Jam</span>
+      </div>`;
+
+      document.getElementById('konfirm-rincian-court').innerHTML = rincianHtml;
+      document.getElementById('konfirm-total-harga').innerText = `Rp ${totalHarga.toLocaleString('id-ID')}`;
+      document.getElementById('fileBukti').value = '';
+
+      document.getElementById('modalKonfirmasi').classList.remove('hidden');
+    }
+
+    function tutupModalKonfirmasi() {
+      document.getElementById('modalKonfirmasi').classList.add('hidden');
+    }
+
+    async function kirimBookingDanBukti() {
+      const fileInput = document.getElementById('fileBukti');
+      if (!fileInput.files[0]) {
+        alert("⚠️ Anda wajib mengunggah foto bukti transfer!");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const buktiBase64 = e.target.result;
+
+        const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).replace(/-/g, '');
+        const idBooking = `BKG-${todayStr}-${Math.floor(100 + Math.random() * 900)}`;
+        const namaLokasiTerpilih = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
+        const detailJamStr = keranjangPilihan.map(k => `${k.court} [${k.jam}]`).join(', ');
+        const totalBayar = keranjangPilihan.reduce((acc, curr) => acc + curr.harga, 0);
+
+        const payloadBooking = {
+          id_booking: idBooking,
+          id_member: activeMemberData.id_member,
+          nama: activeMemberData.nama_member,
+          no_hp: activeMemberData.no_wa,
+          lokasi: namaLokasiTerpilih,
+          tanggal: tanggalAktif,
+          detail_jam: detailJamStr,
+          total_bayar: totalBayar,
+          bukti_transfer: buktiBase64
+        };
+
+        try {
+          const res = await fetch('/api/booking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payloadBooking)
+          });
+          const result = await res.json();
+          if (!res.ok) throw new Error(result.error || "Gagal menyimpan booking");
+
+          tutupModalKonfirmasi();
+          alert(`✅ Booking & Bukti Transfer Berhasil Dikirim!\nID Booking: ${idBooking}\nSilakan menunggu verifikasi status PAID dari admin.`);
+          
+          keranjangPilihan = [];
+          switchTab('riwayat');
+        } catch (err) {
+          alert("Gagal: " + err.message);
+        }
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    async function muatRiwayatMember() {
+      if (!activeMemberData) return;
+      try {
+        const res = await fetch(`/api/booking/member/${activeMemberData.id_member}`);
+        window.memberRiwayatList = await res.json();
+        const tbody = document.getElementById('tabel-riwayat-booking');
+
+        if (!window.memberRiwayatList || window.memberRiwayatList.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-slate-400">Belum ada riwayat booking</td></tr>`;
+          return;
+        }
+
+        let html = '';
+        window.memberRiwayatList.forEach(b => {
+          let badgePayment = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">${b.status_payment || 'Menunggu Cek'}</span>`;
+          if (b.status_payment === 'PAID') {
+            badgePayment = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ PAID</span>`;
+          }
+
+          let badgeAyo = `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${b.status_ayo || 'Pending AYO'}</span>`;
+          if (b.status_ayo === 'Updated AYO') {
+            badgeAyo = `<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Updated AYO</span>`;
+          }
+
+          html += `
+            <tr class="border-b border-slate-100 hover:bg-slate-50">
+              <td class="p-2.5 font-bold text-slate-700">${b.id_booking}</td>
+              <td class="p-2.5">${b.tanggal}</td>
+              <td class="p-2.5 font-semibold text-emerald-800">
+                ${b.lokasi}<br>
+                <button onclick="bukaModalDetailMember('${b.id_booking}', '${b.tanggal}', \`${b.detail_jam}\`)" class="mt-1 bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1 rounded text-[10px] font-bold transition">
+                  🔍 Cek Jam Main
+                </button>
+              </td>
+              <td class="p-2.5 font-bold">Rp ${Number(b.total_bayar).toLocaleString('id-ID')}</td>
+              <td class="p-2.5 text-center"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Submit</span></td>
+              <td class="p-2.5 text-center">${badgePayment}</td>
+              <td class="p-2.5 text-center">
+                <button onclick="bukaModalPreviewInvoice('${b.id_booking}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition">
+                  🧾 Cetak Invoice
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } catch (e) {
+        console.error("Gagal memuat riwayat", e);
+      }
+    }
+
+    function bukaModalPreviewInvoice(idBooking) {
+      const b = window.memberRiwayatList.find(x => x.id_booking === idBooking);
+      if (!b) return;
+      currentActiveBookingForPdf = b;
+
+      document.getElementById('inv-id').innerText = b.id_booking;
+      document.getElementById('inv-nama').innerText = activeMemberData.nama_member;
+      document.getElementById('inv-id-member').innerText = activeMemberData.id_member;
+      document.getElementById('inv-wa').innerText = activeMemberData.no_wa || '-';
+      document.getElementById('inv-tgl-pesan').innerText = new Date().toISOString().split('T')[0];
+      document.getElementById('inv-lokasi').innerText = b.lokasi;
+      document.getElementById('inv-total').innerText = `Rp ${Number(b.total_bayar).toLocaleString('id-ID')}`;
+      
+      const statusPayEl = document.getElementById('inv-status-payment');
+      statusPayEl.innerText = b.status_payment || 'Menunggu Cek';
+      statusPayEl.style.color = b.status_payment === 'PAID' ? '#2ecc71' : '#f39c12';
+
+      const watermarkEl = document.getElementById('watermarkPaid');
+      if (b.status_payment === 'PAID') {
+        watermarkEl.style.display = 'block';
+      } else {
+        watermarkEl.style.display = 'none';
+      }
+
+      document.getElementById('inv-rincian-tabel').innerHTML = formatDetailJamWithPrice(b.tanggal, b.detail_jam);
+
+      document.getElementById('modalPreviewInvoice').classList.remove('hidden');
+    }
+
+    function tutupModalPreviewInvoice() {
+      document.getElementById('modalPreviewInvoice').classList.add('hidden');
+    }
+
+    function eksekusiDownloadPDF() {
+      if (!currentActiveBookingForPdf) return;
+      const b = currentActiveBookingForPdf;
+
+      const element = document.getElementById('invoiceContainer');
+      const opt = {
+        margin:       10,
+        filename:     `Invoice_${b.id_booking}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().from(element).set(opt).save();
+    }
+
+    function bukaModalDetailMember(idBooking, tanggal, detailJamStr) {
+      document.getElementById('modalMemberIdBooking').innerText = `ID Booking: ${idBooking}`;
+      document.getElementById('modalMemberIsiJam').innerHTML = formatDetailJamWithPrice(tanggal, detailJamStr);
+      document.getElementById('modalDetailJamMember').classList.remove('hidden');
+    }
+
+    function tutupModalDetailMember() {
+      document.getElementById('modalDetailJamMember').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
