@@ -10,14 +10,14 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
 
-// AGAR FILE HTML, CSS, DAN GAMBAR (boss.png) BISA DIBUKA DI BROWSER
-app.use(express.static(path.join(__dirname)));
+// Melayani file statis (HTML, CSS, JS, Gambar) dari folder 'public'
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Inisialisasi Database dengan better-sqlite3
 const db = new Database('./membership.db');
 console.log('Terhubung ke database SQLite (better-sqlite3).');
 
-// Setup tabel SQLite (Sinkron, tanpa callback)
+// Setup tabel SQLite (Sinkron)
 db.exec(`
     CREATE TABLE IF NOT EXISTS members (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,14 +53,19 @@ try { db.exec(`ALTER TABLE bookings ADD COLUMN status_payment TEXT DEFAULT 'Menu
 try { db.exec(`ALTER TABLE bookings ADD COLUMN status_ayo TEXT DEFAULT 'Pending AYO'`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN bukti_transfer TEXT`); } catch(e) {}
 
-// Route default mengarah ke index.html
+// Route utama mengarah ke index.html di dalam folder public
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Route untuk halaman admin jika dibutuhkan
+// Route halaman admin
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Route halaman booking (jika diakses terpisah)
+app.get('/booking', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'booking.html'));
 });
 
 // ==========================================
