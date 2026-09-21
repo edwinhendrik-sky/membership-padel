@@ -194,6 +194,10 @@
           <h3 class="font-bold text-xs uppercase text-slate-600 tracking-wider">📋 Riwayat Booking & Status Lapangan</h3>
           <button onclick="muatRiwayatMember()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">🔄 Refresh</button>
         </div>
+
+        <!-- Input file tersembunyi untuk edit bukti transfer -->
+        <input type="file" id="inputEditBukti" accept="image/*" class="hidden" onchange="prosesUploadEditBukti(this)">
+
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
             <thead>
@@ -204,7 +208,7 @@
                 <th class="p-2.5">Total Bayar</th>
                 <th class="p-2.5 text-center">Booked</th>
                 <th class="p-2.5 text-center">Payment</th>
-                <th class="p-2.5 text-center">Invoice</th>
+                <th class="p-2.5 text-center">Invoice / Aksi Bukti</th>
               </tr>
             </thead>
             <tbody id="tabel-riwayat-booking">
@@ -336,6 +340,7 @@
     let keranjangPilihan = [];
     let currentActiveBookingForPdf = null;
     let activeMemberData = null;
+    let currentEditBookingId = null;
 
     const fotoDatabase = {
       "PB0041": "PB0041.png", "PB0042": "PB0042.png", "PB0043": "PB0043.png",
@@ -503,11 +508,11 @@
     function downloadKartuPDF() {
       const element = document.getElementById('kartuPdfTarget');
       const opt = {
-        margin:       10,
-        filename:     `Kartu_VIP_${activeMemberData.id_member}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
+        margin:      10,
+        filename:    `Kartu_VIP_${activeMemberData.id_member}.pdf`,
+        image:       { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        jsPDF:       { unit: 'mm', format: 'a5', orientation: 'portrait' }
       };
       html2pdf().from(element).set(opt).save();
     }
@@ -817,6 +822,42 @@
       reader.readAsDataURL(fileInput.files[0]);
     }
 
+    function triggerEditBukti(dbId) {
+      currentEditBookingId = dbId;
+      document.getElementById('inputEditBukti').click();
+    }
+
+    async function prosesUploadEditBukti(input) {
+      if (!input.files || !input.files[0] || !currentEditBookingId) return;
+      const file = input.files[0];
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Foto = e.target.result;
+
+        try {
+          const res = await fetch(`/api/booking/bukti/${currentEditBookingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bukti_transfer: base64Foto })
+          });
+          const result = await res.json();
+
+          if (res.ok && result.success) {
+            alert("✅ Bukti transfer berhasil diperbarui! Status pembayaran diubah kembali menjadi Menunggu Cek.");
+            muatRiwayatMember();
+          } else {
+            alert("Gagal memperbarui bukti transfer: " + (result.error || "Kesalahan server"));
+          }
+        } catch (err) {
+          alert("Terjadi kesalahan saat mengunggah bukti transfer.");
+        }
+        input.value = '';
+        currentEditBookingId = null;
+      };
+      reader.readAsDataURL(file);
+    }
+
     async function muatRiwayatMember() {
       if (!activeMemberData) return;
       try {
@@ -836,11 +877,6 @@
             badgePayment = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ PAID</span>`;
           }
 
-          let badgeAyo = `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${b.status_ayo || 'Pending AYO'}</span>`;
-          if (b.status_ayo === 'Updated AYO') {
-            badgeAyo = `<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Updated AYO</span>`;
-          }
-
           html += `
             <tr class="border-b border-slate-100 hover:bg-slate-50">
               <td class="p-2.5 font-bold text-slate-700">${b.id_booking}</td>
@@ -854,9 +890,12 @@
               <td class="p-2.5 font-bold">Rp ${Number(b.total_bayar).toLocaleString('id-ID')}</td>
               <td class="p-2.5 text-center"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Submit</span></td>
               <td class="p-2.5 text-center">${badgePayment}</td>
-              <td class="p-2.5 text-center">
-                <button onclick="bukaModalPreviewInvoice('${b.id_booking}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition">
+              <td class="p-2.5 text-center space-y-1">
+                <button onclick="bukaModalPreviewInvoice('${b.id_booking}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition block w-full">
                   🧾 Cetak Invoice
+                </button>
+                <button onclick="triggerEditBukti(${b.id})" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded text-[10px] font-bold transition block w-full">
+                  ✏️ Edit Bukti Transfer
                 </button>
               </td>
             </tr>
@@ -907,11 +946,11 @@
 
       const element = document.getElementById('invoiceContainer');
       const opt = {
-        margin:       10,
-        filename:     `Invoice_${b.id_booking}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
+        margin:      10,
+        filename:    `Invoice_${b.id_booking}.pdf`,
+        image:       { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       html2pdf().from(element).set(opt).save();
