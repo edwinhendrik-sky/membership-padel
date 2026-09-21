@@ -13,14 +13,14 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inisialisasi Database SQLite (membership.db)
+// Inisialisasi Database SQLite
 const dbFile = path.join(__dirname, 'membership.db');
 const db = new sqlite3.Database(dbFile, (err) => {
     if (err) console.error('Gagal terhubung ke database:', err.message);
     else console.log('Terhubung ke database SQLite (membership.db).');
 });
 
-// Setup Tabel
+// Setup Tabel & Kolom secara Aman
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS members (
@@ -59,52 +59,6 @@ db.serialize(() => {
     db.run(`ALTER TABLE bookings ADD COLUMN status_payment TEXT DEFAULT 'Menunggu Cek'`, () => {});
     db.run(`ALTER TABLE bookings ADD COLUMN status_ayo TEXT DEFAULT 'Pending AYO'`, () => {});
     db.run(`ALTER TABLE bookings ADD COLUMN bukti_transfer TEXT`, () => {});
-
-    // AUTO-SYNC DARI FILE EXCEL ('list member.xlsx') SAAT SERVER START
-    function formatTanggal(dateVal) {
-        if (!dateVal) return "";
-        if (dateVal instanceof Date) {
-            const y = dateVal.getFullYear();
-            const m = String(dateVal.getMonth() + 1).padStart(2, '0');
-            const d = String(dateVal.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-        return String(dateVal);
-    }
-
-    const excelFilePath = path.join(__dirname, 'list member.xlsx');
-    if (fs.existsSync(excelFilePath)) {
-        try {
-            const workbook = xlsx.readFile(excelFilePath, { cellDates: true });
-            const sheetName = workbook.SheetNames[0];
-            const dataExcel = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-            dataExcel.forEach(item => {
-                const idMember = item["ID Member"] ? item["ID Member"].toString().trim() : "";
-                const nama = item["Nama Member"] ? item["Nama Member"].toString().trim() : "";
-                let noWa = item["No WA"] ? item["No WA"].toString().trim() : "";
-                const aktivasi = formatTanggal(item["Tgl Aktivasi"]);
-                const expired = formatTanggal(item["Tgl Expired"]);
-                const status = item["Status"] ? item["Status"].toString().trim() : "Aktif";
-
-                if (noWa.endsWith('.0')) noWa = noWa.replace('.0', '');
-                if (!idMember) return;
-
-                db.get(`SELECT id_member FROM members WHERE UPPER(id_member) = UPPER(?)`, [idMember], (err, row) => {
-                    if (row) {
-                        db.run(`UPDATE members SET nama_member = ?, no_wa = ?, tgl_aktivasi = ?, tgl_expired = ?, status = ? WHERE UPPER(id_member) = UPPER(?)`, 
-                            [nama, noWa, aktivasi, expired, status, idMember]);
-                    } else {
-                        db.run(`INSERT INTO members (nama_member, no_wa, id_member, tgl_aktivasi, tgl_expired, status) VALUES (?, ?, ?, ?, ?, ?)`, 
-                            [nama, noWa, idMember, aktivasi, expired, status]);
-                    }
-                });
-            });
-            console.log("✅ Auto-sync data member dari Excel ke database berhasil.");
-        } catch (e) {
-            console.error("❌ Gagal membaca file Excel saat sync:", e.message);
-        }
-    }
 });
 
 // Route Halaman
@@ -221,13 +175,13 @@ app.post('/members', (req, res) => {
                     error: `Gagal: Nomor WhatsApp ${cleanWa} sudah terdaftar atas nama ${existingWa.nama_member} (ID: ${existingWa.id_member})!` 
                 });
             }
-            prosesInsertMember();
+            eksekusiInsert();
         });
     } else {
-        prosesInsertMember();
+        eksekusiInsert();
     }
 
-    function prosesInsertMember() {
+    function eksekusiInsert() {
         db.get(`SELECT id_member FROM members WHERE id_member LIKE 'PB%' ORDER BY CAST(SUBSTR(id_member, 3) AS INTEGER) DESC LIMIT 1`, [], (err, row) => {
             let nextIdNum = 1;
             if (row && row.id_member) {
