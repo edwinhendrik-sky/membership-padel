@@ -128,6 +128,20 @@ app.post('/api/booking', (req, res) => {
     });
 });
 
+// Endpoint Update Bukti Transfer Member (Edit Bukti)
+app.put('/api/booking/bukti/:id', (req, res) => {
+    const { bukti_transfer } = req.body;
+    if (!bukti_transfer) {
+        return res.status(400).json({ error: "Bukti transfer wajib diunggah!" });
+    }
+
+    const sql = `UPDATE bookings SET bukti_transfer = ?, status_payment = 'Menunggu Cek' WHERE id = ?`;
+    db.run(sql, [bukti_transfer, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, message: "Bukti transfer berhasil diperbarui" });
+    });
+});
+
 // Endpoint Riwayat Booking Member
 app.get('/api/booking/member/:id_member', (req, res) => {
     const sql = `SELECT * FROM bookings WHERE UPPER(id_member) = UPPER(?) ORDER BY id DESC`;
@@ -211,7 +225,7 @@ app.put('/members/:id', (req, res) => {
             });
         }
 
-        const sql = `UPDATE members SET nama_member = ?, no_wa = ?, tgl_aktivasi = ?, tgl_expired = ?, status = ? WHERE id = ?`;
+        const sql = `UPDATE members SET nama_member = ?, no_wa = ?, tgl_aktivasi = ?, tgl_expired, status = ? WHERE id = ?`;
         db.run(sql, [nama_member, cleanWa, tgl_aktivasi, tgl_expired, status, req.params.id], function(err) {
             if (err) return res.status(500).json({ success: false, error: err.message });
             res.json({ success: true, message: "Data berhasil diupdate" });
