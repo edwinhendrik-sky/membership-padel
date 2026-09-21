@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Inisialisasi Database dengan better-sqlite3
-const db = new Database('./membership.db');
+const db = new Database('./membership');
 console.log('Terhubung ke database SQLite (better-sqlite3).');
 
 // Setup tabel SQLite (Sinkron)
