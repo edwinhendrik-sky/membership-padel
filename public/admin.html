@@ -4,7 +4,6 @@
     <title>Sistem Manajemen Admin - Padel Boss Mengger Bandung</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Perbaikan: Menghilangkan flex justify-center agar posisi halaman menempel dari atas */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }
         
         .auth-container { 
@@ -272,7 +271,7 @@
         <div style="text-align: center;">
             <div style="width: 100%; max-width: 420px; background: radial-gradient(circle at center, #133a25 0%, #081c10 100%); border: 3px solid #d4af37; border-radius: 18px; padding: 22px; color: #f3e5ab; box-shadow: 0 15px 35px rgba(0,0,0,0.6); position: relative; overflow: hidden; margin: 0 auto; text-align: left;">
                 <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid rgba(212, 175, 55, 0.4); padding-bottom: 10px; margin-bottom: 14px;">
-                    <div style="font-size: 11.5px; font-weight: 800; color: #d4af37; background: rgba(13,40,24,0.6); border: 1.5px solid #d4af37; padding: 6px 14px; border-radius: 6px; letter-spacing: 1px;">MEMBERSHIP</div>
+                    <div style="font-size: 11.5px; font-weight: 800; color: #d4af37; background: rgba(13,40,24,0.6); border: 1.5px solid #d4af37; padding: 6px 14px; border-radius: 6px; letter-spacing: 1px;">BOSS MEMBERSHIP</div>
                     <div><img src="boss.png" alt="Padel Boss Logo" style="height: 65px; width: auto; object-fit: contain; mix-blend-mode: screen; transform: scale(1.3);" onerror="this.src='/boss.png';"></div>
                 </div>
                 <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 14px;">
@@ -459,6 +458,7 @@
 
                 setupRolePermissions();
                 loadMembers();
+                loadAdminBookings();
             } else {
                 errDiv.style.display = 'block';
             }
@@ -622,19 +622,38 @@
 
         async function simpanMember() {
             const id = document.getElementById('dbId').value;
-            const payload = {
-                nama_member: document.getElementById('nama').value,
-                no_wa: document.getElementById('nowa').value,
-                tgl_aktivasi: document.getElementById('tgl_aktivasi').value,
-                tgl_expired: document.getElementById('tgl_expired').value,
-                status: document.getElementById('status').value
-            };
-            await fetch(id ? `${API_URL}/${id}` : API_URL, {
-                method: id ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            tutupFormModal(); loadMembers();
+            const nama_member = document.getElementById('nama').value.trim();
+            const no_wa = document.getElementById('nowa').value.trim();
+            const tgl_aktivasi = document.getElementById('tgl_aktivasi').value;
+            const tgl_expired = document.getElementById('tgl_expired').value;
+            const status = document.getElementById('status').value;
+
+            if (!nama_member || !no_wa || !tgl_aktivasi || !tgl_expired) {
+                alert("⚠️ Harap isi semua kolom formulir dengan lengkap!");
+                return;
+            }
+
+            const payload = { nama_member, no_wa, tgl_aktivasi, tgl_expired, status };
+
+            try {
+                const res = await fetch(id ? `${API_URL}/${id}` : API_URL, {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await res.json();
+                if (!res.ok || result.success === false) {
+                    throw new Error(result.error || "Gagal menyimpan data member.");
+                }
+
+                alert("✅ Data member berhasil disimpan!");
+                tutupFormModal();
+                loadMembers();
+                gantiTabAdmin('member');
+            } catch (err) {
+                alert("❌ " + err.message);
+            }
         }
 
         function editMember(id, nama, wa, aktivasi, expired, status) {
@@ -654,8 +673,15 @@
                 return;
             }
             if(confirm('Yakin ingin menghapus member ini?')) {
-                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-                loadMembers();
+                try {
+                    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                    const result = await res.json();
+                    if (!res.ok || result.success === false) throw new Error(result.error || "Gagal menghapus data");
+                    alert("✅ Data member berhasil dihapus!");
+                    loadMembers();
+                } catch (e) {
+                    alert("❌ " + e.message);
+                }
             }
         }
 
