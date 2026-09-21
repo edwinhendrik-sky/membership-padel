@@ -11,7 +11,7 @@ app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inisialisasi Database (Sesuaikan nama file database Anda: './membership' atau './membership.db')
+// Inisialisasi Database SQLite
 const db = new Database('./membership');
 console.log('Terhubung ke database SQLite.');
 
@@ -91,7 +91,6 @@ app.post('/api/member/foto', (req, res) => {
         const sql = `UPDATE members SET foto = ? WHERE UPPER(id_member) = UPPER(?)`;
         db.prepare(sql).run(foto, id_member);
         
-        // Ambil data terbaru member
         const updatedMember = db.prepare(`SELECT * FROM members WHERE UPPER(id_member) = UPPER(?)`).get(id_member);
         res.json({ success: true, message: "Foto profil berhasil diperbarui", data: updatedMember });
     } catch (err) {
