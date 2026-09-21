@@ -1,6 +1,7 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
@@ -8,6 +9,9 @@ const app = express();
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
+
+// AGAR FILE HTML, CSS, DAN GAMBAR (boss.png) BISA DIBUKA DI BROWSER
+app.use(express.static(path.join(__dirname)));
 
 // Inisialisasi Database dengan better-sqlite3
 const db = new Database('./membership.db');
@@ -48,6 +52,16 @@ try { db.exec(`ALTER TABLE bookings ADD COLUMN status_booked TEXT DEFAULT 'Booke
 try { db.exec(`ALTER TABLE bookings ADD COLUMN status_payment TEXT DEFAULT 'Menunggu Cek'`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN status_ayo TEXT DEFAULT 'Pending AYO'`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN bukti_transfer TEXT`); } catch(e) {}
+
+// Route default mengarah ke index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Route untuk halaman admin jika dibutuhkan
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
 
 // ==========================================
 // 1. ENDPOINT AUTH & LOGIN MEMBER
