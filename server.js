@@ -5,19 +5,17 @@ const path = require('path');
 
 const app = express();
 
-// Naikkan limit body parser untuk menampung gambar foto bukti transfer base64
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
 
-// Melayani file statis (HTML, CSS, JS, Gambar) dari folder 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inisialisasi Database dengan better-sqlite3
+// Inisialisasi Database (Sesuaikan nama file database Anda: './membership' atau './membership.db')
 const db = new Database('./membership');
-console.log('Terhubung ke database SQLite (better-sqlite3).');
+console.log('Terhubung ke database SQLite.');
 
-// Setup tabel SQLite (Sinkron)
+// Setup Tabel & Kolom Foto
 db.exec(`
     CREATE TABLE IF NOT EXISTS members (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +24,8 @@ db.exec(`
         no_wa TEXT,
         tgl_aktivasi TEXT,
         tgl_expired TEXT,
-        status TEXT
+        status TEXT,
+        foto TEXT
     );
 
     CREATE TABLE IF NOT EXISTS bookings (
@@ -47,30 +46,22 @@ db.exec(`
     );
 `);
 
-// Pastikan kolom-kolom tambahan tersedia (jika tabel sudah ada sebelumnya)
+try { db.exec(`ALTER TABLE members ADD COLUMN foto TEXT`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN status_booked TEXT DEFAULT 'Booked'`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN status_payment TEXT DEFAULT 'Menunggu Cek'`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN status_ayo TEXT DEFAULT 'Pending AYO'`); } catch(e) {}
 try { db.exec(`ALTER TABLE bookings ADD COLUMN bukti_transfer TEXT`); } catch(e) {}
 
-// Route utama mengarah ke index.html di dalam folder public
+// Route Halaman
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Route halaman admin
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Route halaman booking
-app.get('/booking', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'booking.html'));
-});
-
-// ==========================================
-// 1. ENDPOINT AUTH & LOGIN MEMBER
-// ==========================================
+// Endpoint Login Member
 app.post('/login', (req, res) => {
     const { id_member, no_wa } = req.body;
     const cleanId = id_member ? id_member.toString().trim() : '';
@@ -89,11 +80,26 @@ app.post('/login', (req, res) => {
     }
 });
 
-// ==========================================
-// 2. ENDPOINT BOOKING LAPANGAN (MEMBER)
-// ==========================================
+// Endpoint Upload / Ganti Foto Profil Member
+app.post('/api/member/foto', (req, res) => {
+    const { id_member, foto } = req.body;
+    if (!id_member || !foto) {
+        return res.status(400).json({ error: "ID Member dan foto wajib diisi!" });
+    }
 
-// Ambil slot terpakai berdasarkan tanggal
+    try {
+        const sql = `UPDATE members SET foto = ? WHERE UPPER(id_member) = UPPER(?)`;
+        db.prepare(sql).run(foto, id_member);
+        
+        // Ambil data terbaru member
+        const updatedMember = db.prepare(`SELECT * FROM members WHERE UPPER(id_member) = UPPER(?)`).get(id_member);
+        res.json({ success: true, message: "Foto profil berhasil diperbarui", data: updatedMember });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Endpoint Booking Terpakai
 app.get('/api/booking/terpakai', (req, res) => {
     const { tanggal } = req.query;
     try {
@@ -104,7 +110,7 @@ app.get('/api/booking/terpakai', (req, res) => {
     }
 });
 
-// Submit booking baru beserta bukti transfer wajib
+// Endpoint Submit Booking
 app.post('/api/booking', (req, res) => {
     const { id_booking, id_member, nama, no_hp, lokasi, tanggal, detail_jam, total_bayar, bukti_transfer } = req.body;
     
@@ -122,7 +128,7 @@ app.post('/api/booking', (req, res) => {
     }
 });
 
-// Ambil riwayat booking member yang sedang login
+// Endpoint Riwayat Booking Member
 app.get('/api/booking/member/:id_member', (req, res) => {
     try {
         const sql = `SELECT * FROM bookings WHERE UPPER(id_member) = UPPER(?) ORDER BY id DESC`;
@@ -133,11 +139,7 @@ app.get('/api/booking/member/:id_member', (req, res) => {
     }
 });
 
-// ==========================================
-// 3. ENDPOINT ADMIN (VERIFIKASI BOOKING)
-// ==========================================
-
-// Ambil seluruh data booking masuk untuk admin
+// Endpoint Admin Bookings
 app.get('/api/admin/bookings', (req, res) => {
     try {
         const rows = db.prepare(`SELECT * FROM bookings ORDER BY id DESC`).all();
@@ -147,7 +149,7 @@ app.get('/api/admin/bookings', (req, res) => {
     }
 });
 
-// Update status Payment (PAID) atau Status AYO (Updated AYO)
+// Update Status Booking Admin
 app.put('/api/admin/booking/status/:id', (req, res) => {
     const { status_payment, status_ayo } = req.body;
     try {
@@ -159,11 +161,7 @@ app.put('/api/admin/booking/status/:id', (req, res) => {
     }
 });
 
-// ==========================================
-// 4. ENDPOINT CRUD DATA MEMBERSHIP
-// ==========================================
-
-// READ: Menampilkan semua member (Urut ID ASC)
+// CRUD Members
 app.get('/members', (req, res) => {
     try {
         const rows = db.prepare("SELECT * FROM members ORDER BY id_member ASC").all();
@@ -173,52 +171,43 @@ app.get('/members', (req, res) => {
     }
 });
 
-// CREATE: Tambah member baru dengan ID otomatis
 app.post('/members', (req, res) => {
     const { nama_member, no_wa, tgl_aktivasi, tgl_expired, status } = req.body;
-
     try {
         const row = db.prepare(`SELECT id_member FROM members ORDER BY id_member DESC LIMIT 1`).get();
-        
         let newIdMember = "PB0001";
         if (row && row.id_member) {
             const lastIdNum = parseInt(row.id_member.replace("PB", ""), 10);
-            const nextIdNum = lastIdNum + 1;
-            newIdMember = "PB" + String(nextIdNum).padStart(4, '0');
+            newIdMember = "PB" + String(lastIdNum + 1).padStart(4, '0');
         }
-
         const sql = `INSERT INTO members (nama_member, no_wa, id_member, tgl_aktivasi, tgl_expired, status) VALUES (?, ?, ?, ?, ?, ?)`;
         const info = db.prepare(sql).run(nama_member, no_wa, newIdMember, tgl_aktivasi, tgl_expired, status);
-        
         res.json({ id: info.lastInsertRowid, id_member: newIdMember, nama_member, no_wa, tgl_aktivasi, tgl_expired, status });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// UPDATE: Edit data member
 app.put('/members/:id', (req, res) => {
     const { nama_member, no_wa, tgl_aktivasi, tgl_expired, status } = req.body;
     try {
         const sql = `UPDATE members SET nama_member = ?, no_wa = ?, tgl_aktivasi = ?, tgl_expired = ?, status = ? WHERE id = ?`;
         db.prepare(sql).run(nama_member, no_wa, tgl_aktivasi, tgl_expired, status, req.params.id);
-        res.json({ message: "Data berhasil diupdate" });
+        res.json({ message: "Data member berhasil diupdate" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// DELETE: Hapus data member
 app.delete('/members/:id', (req, res) => {
     try {
         db.prepare(`DELETE FROM members WHERE id = ?`).run(req.params.id);
-        res.json({ message: "Data berhasil dihapus" });
+        res.json({ message: "Data member berhasil dihapus" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Jalankan Server pada port dinamis (Render) atau port 3000 (Lokal)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server berjalan di port ${PORT}`);
