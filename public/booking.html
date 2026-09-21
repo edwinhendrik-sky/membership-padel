@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Member Lapangan - Padel Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 pb-20">
+
+  <!-- HEADER -->
+  <header class="bg-[#1b4d3e] text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <span class="text-[10px] font-bold tracking-widest text-amber-400 uppercase block">RESERVASI KHUSUS MEMBER</span>
+        <h1 class="text-lg font-black tracking-tight" id="header-lokasi-nama">Padel Boss Mengger</h1>
+      </div>
+      <div id="badge-member-info" class="bg-emerald-900/80 px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-700/50">
+        Memuat Data Member...
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+
+    <!-- LOKASI & PILIHAN CLUB -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-3">
+      <div class="w-full md:w-1/2">
+        <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Klub / Lokasi Padel</label>
+        <select id="select-lokasi" onchange="gantiLokasi()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs">
+          <option value="boss_mengger">Padel Boss Mengger</option>
+        </select>
+      </div>
+      <div class="w-full md:w-1/2 flex items-center justify-end text-right">
+        <div class="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl text-xs text-amber-900 font-semibold w-full">
+          ⭐ Tarif Member: 06:00 - 18:00 (Rp 69k) | 18:00 - 22:00 (Rp 99k)
+        </div>
+      </div>
+    </div>
+
+    <!-- TANGGAL MATRIKS (HORIZONTAL DATE PICKER) -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs font-black uppercase text-slate-500 tracking-wider">Pilih Tanggal Bermain</h2>
+        <input type="date" id="input-tanggal-custom" onchange="pilihTanggalCustom(this.value)" class="text-xs font-bold p-1.5 border border-slate-300 rounded-lg bg-slate-50">
+      </div>
+      <div id="baris-tanggal" class="flex space-x-2 overflow-x-auto pb-2 scrollbar-none">
+        <!-- Render horizontal date chips via JS -->
+      </div>
+    </div>
+
+    <!-- MATRIKS JADWAL & 5 LAPANGAN -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table id="tabel-matriks" class="w-full text-left text-xs border-collapse">
+          <!-- Render via JS (Court 1 - 5) -->
+        </table>
+      </div>
+    </div>
+
+    <!-- FORM RINGKASAN & KONFIRMASI BOOKING -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+      <h3 class="font-black text-sm text-[#1b4d3e] border-b pb-2">Ringkasan Pemesanan Member</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Member</label>
+          <input type="text" id="b-nama" placeholder="Nama Lengkap" class="w-full p-2.5 border rounded-xl font-medium bg-slate-100" readonly>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">No. WhatsApp / HP</label>
+          <input type="text" id="b-hp" placeholder="Contoh: 628123456789" class="w-full p-2.5 border rounded-xl font-medium bg-slate-100" readonly>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+        <div class="flex justify-between">
+          <span class="text-slate-500">Lokasi:</span>
+          <span id="ringkasan-lokasi" class="font-bold">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Tanggal:</span>
+          <span id="ringkasan-tanggal" class="font-bold">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Jadwal Dipilih:</span>
+          <span id="ringkasan-jadwal" class="font-bold text-[#1b4d3e]">-</span>
+        </div>
+        <div class="flex justify-between border-t pt-2 text-sm">
+          <span class="font-bold text-slate-700">Total Pembayaran Member:</span>
+          <span id="ringkasan-total" class="font-black text-emerald-700">Rp 0</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1 text-xs">Upload Bukti Transfer (Opsional / Konfirmasi Pembayaran)</label>
+        <input type="file" id="b-file" accept="image/*" onchange="konversiFile(this)" class="w-full text-xs border border-slate-300 p-2 rounded-xl bg-slate-50">
+      </div>
+
+      <button onclick="prosesBooking()" class="w-full bg-[#1b4d3e] hover:bg-[#14382d] text-white py-3.5 rounded-xl font-bold text-xs transition shadow-md">
+        🚀 Kirim Booking Member Sekarang
+      </button>
+    </div>
+
+  </main>
+
+  <!-- SCRIPT -->
+  <script>
+    let listLokasiData = {};
+    let lokasiAktif = "boss_mengger";
+    let tanggalAktif = "";
+    let dataMemberLogin = null;
+    let slotTerpakai = [];
+    let keranjangPilihan = [];
+
+    const jamOperasional = [
+      "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", 
+      "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", 
+      "18:00", "19:00", "20:00", "21:00", "22:00"
+    ];
+
+    // Daftar 5 Lapangan Padel Boss Mengger
+    const daftarCourt = ["Court 1", "Court 2", "Court 3", "Court 4", "Court 5"];
+
+    // Penentuan Tarif Member Berdasarkan Jam
+    function getHargaMemberByJam(jam) {
+      const jamInt = parseInt(jam.split(':')[0], 10);
+      // Jam 18:00 - 22:00 Seharga 99.000 (99k)
+      if (jamInt >= 18 && jamInt <= 22) {
+        return 99000;
+      }
+      // Jam 06:00 - 18:00 Seharga 69.000 (69k)
+      return 69000;
+    }
+
+    function getTanggalLokal(offsetHari = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetHari);
+      const options = { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' };
+      return new Intl.DateTimeFormat('en-CA', options).format(d);
+    }
+
+    async function inisialisasi() {
+      tanggalAktif = getTanggalLokal(0);
+      document.getElementById('input-tanggal-custom').value = tanggalAktif;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const memberId = urlParams.get('member');
+      
+      if (memberId) {
+        try {
+          const res = await fetch(`/api/member/login/${memberId}`);
+          if (res.ok) {
+            dataMemberLogin = await res.json();
+            document.getElementById('badge-member-info').innerHTML = `⭐ Member: ${dataMemberLogin.nama} (${dataMemberLogin.id_member})`;
+            document.getElementById('b-nama').value = dataMemberLogin.nama;
+            document.getElementById('b-hp').value = dataMemberLogin.no_hp;
+          } else {
+            alert("⚠️ ID Member pada link tidak valid atau tidak ditemukan.");
+            document.getElementById('badge-member-info').innerHTML = `⚠️ Tamu / Umum`;
+            document.getElementById('b-nama').readOnly = false;
+            document.getElementById('b-hp').readOnly = false;
+          }
+        } catch(e) {
+          console.error(e);
+        }
+      } else {
+        document.getElementById('badge-member-info').innerHTML = `⚠️ Umum / Tanpa Link Member`;
+        document.getElementById('b-nama').readOnly = false;
+        document.getElementById('b-hp').readOnly = false;
+      }
+
+      try {
+        const resLok = await fetch('/api/lokasi');
+        listLokasiData = await resLok.json();
+      } catch(e) {}
+
+      renderHorizontalDatepicker();
+      await muatDataBookingHari();
+    }
+
+    function renderHorizontalDatepicker() {
+      const container = document.getElementById('baris-tanggal');
+      container.innerHTML = '';
+      
+      const hariArr = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      const bulanArr = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const tglStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+        const namaHari = hariArr[d.getDay()];
+        const tglAngka = d.getDate();
+        const namaBulan = bulanArr[d.getMonth()];
+
+        const isSelected = tglStr === tanggalAktif;
+
+        container.innerHTML += `
+          <button onclick="pilihTanggal('${tglStr}')" class="flex flex-col items-center justify-center min-w-[70px] p-2.5 rounded-xl border transition ${isSelected ? 'bg-[#7a2b2b] text-white border-[#7a2b2b] shadow-sm font-bold' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+            <span class="text-[10px] uppercase font-semibold opacity-80">${namaHari}</span>
+            <span class="text-sm font-black my-0.5">${tglAngka}</span>
+            <span class="text-[10px] opacity-80">${namaBulan}</span>
+          </button>
+        `;
+      }
+    }
+
+    function pilihTanggal(tgl) {
+      tanggalAktif = tgl;
+      document.getElementById('input-tanggal-custom').value = tgl;
+      renderHorizontalDatepicker();
+      muatDataBookingHari();
+    }
+
+    function pilihTanggalCustom(tgl) {
+      if (!tgl) return;
+      tanggalAktif = tgl;
+      renderHorizontalDatepicker();
+      muatDataBookingHari();
+    }
+
+    function gantiLokasi() {
+      lokasiAktif = document.getElementById('select-lokasi').value;
+      const namaLokasi = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
+      document.getElementById('header-lokasi-nama').innerText = namaLokasi;
+      muatDataBookingHari();
+    }
+
+    async function muatDataBookingHari() {
+      keranjangPilihan = [];
+      updateRingkasan();
+      try {
+        const res = await fetch(`/api/booking/terpakai?tanggal=${tanggalAktif}`);
+        const data = await res.json();
+        slotTerpakai = data;
+        renderMatriksJadwal();
+      } catch (err) {
+        slotTerpakai = [];
+        renderMatriksJadwal();
+      }
+    }
+
+    function renderMatriksJadwal() {
+      const tabel = document.getElementById('tabel-matriks');
+      const namaLokasiTerpilih = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
+
+      let htmlHeader = `
+        <thead>
+          <tr class="bg-slate-100 text-slate-700 border-b">
+            <th class="p-3.5 w-20 text-center font-bold">Jam</th>
+      `;
+      daftarCourt.forEach(court => {
+        htmlHeader += `<th class="p-3.5 text-center border-l font-black text-[#1b4d3e]">${court} ></th>`;
+      });
+      htmlHeader += `
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      let htmlBody = '';
+
+      jamOperasional.forEach(jam => {
+        const hargaSlot = getHargaMemberByJam(jam);
+        htmlBody += `<tr class="border-b border-slate-100 hover:bg-slate-50/50">`;
+        htmlBody += `<td class="p-3 text-center font-bold text-slate-600 bg-slate-50/80 border-r">${jam}</td>`;
+
+        daftarCourt.forEach(court => {
+          let isBooked = false;
+          slotTerpakai.forEach(b => {
+            if (b.lokasi === namaLokasiTerpilih && b.detail_jam && b.detail_jam.includes(`${court} [${jam}`)) {
+              isBooked = true;
+            }
+          });
+
+          const isSelected = keranjangPilihan.some(k => k.court === court && k.jam === jam);
+
+          if (isBooked) {
+            htmlBody += `
+              <td class="p-2 border-l">
+                <div class="bg-slate-200 text-slate-500 rounded-xl p-3 text-center cursor-not-allowed opacity-90">
+                  <p class="font-bold text-xs">Rp ${hargaSlot.toLocaleString('id-ID')}</p>
+                  <div class="flex items-center justify-center space-x-1 mt-0.5 text-[10px] font-bold text-slate-600">
+                    <span>Booked</span> <span>🔔</span>
+                  </div>
+                </div>
+              </td>
+            `;
+          } else {
+            htmlBody += `
+              <td class="p-2 border-l">
+                <div onclick="togglePilihSlot('${court}', '${jam}', ${hargaSlot})" class="rounded-xl p-3 text-center cursor-pointer transition border ${isSelected ? 'bg-emerald-700 text-white border-emerald-800 shadow-md font-bold' : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-600 hover:shadow-sm'}">
+                  <p class="font-black text-xs">Rp ${hargaSlot.toLocaleString('id-ID')}</p>
+                  <p class="text-[10px] mt-0.5 ${isSelected ? 'text-emerald-100 font-semibold' : 'text-slate-400'}">${isSelected ? 'Dipilih ✓' : 'Tersedia'}</p>
+                </div>
+              </td>
+            `;
+          }
+        });
+
+        htmlBody += `</tr>`;
+      });
+
+      tabel.innerHTML = htmlHeader + htmlBody + `</tbody>`;
+    }
+
+    function togglePilihSlot(court, jam, harga) {
+      const idx = keranjangPilihan.findIndex(k => k.court === court && k.jam === jam);
+      if (idx >= 0) {
+        keranjangPilihan.splice(idx, 1);
+      } else {
+        keranjangPilihan.push({ court, jam, harga });
+      }
+      renderMatriksJadwal();
+      updateRingkasan();
+    }
+
+    function updateRingkasan() {
+      const namaLokasiTerpilih = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
+      document.getElementById('ringkasan-lokasi').innerText = namaLokasiTerpilih;
+      document.getElementById('ringkasan-tanggal').innerText = tanggalAktif;
+
+      if (keranjangPilihan.length === 0) {
+        document.getElementById('ringkasan-jadwal').innerText = "Belum ada jadwal dipilih";
+        document.getElementById('ringkasan-total').innerText = "Rp 0";
+        return;
+      }
+
+      let teksJadwal = keranjangPilihan.map(k => `${k.court} [${k.jam}]`).join(', ');
+      let totalHarga = keranjangPilihan.reduce((acc, curr) => acc + curr.harga, 0);
+
+      document.getElementById('ringkasan-jadwal').innerText = teksJadwal;
+      document.getElementById('ringkasan-total').innerText = `Rp ${totalHarga.toLocaleString('id-ID')}`;
+    }
+
+    let base64BuktiTransfer = "";
+    function konversiFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        base64BuktiTransfer = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function prosesBooking() {
+      const nama = document.getElementById('b-nama').value.trim();
+      const noHp = document.getElementById('b-hp').value.trim();
+
+      if (!nama || !noHp) {
+        alert("⚠️ Mohon lengkapi data pemesan terlebih dahulu!");
+        return;
+      }
+
+      if (keranjangPilihan.length === 0) {
+        alert("⚠️ Belum ada jadwal lapangan yang dipilih. Silakan klik kotak jam pada tabel!");
+        return;
+      }
+
+      const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).replace(/-/g, '');
+      const idBooking = `BKG-${todayStr}-${Math.floor(100 + Math.random() * 900)}`;
+      const namaLokasiTerpilih = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
+      const detailJamStr = keranjangPilihan.map(k => `${k.court} [${k.jam}]`).join(', ');
+      const totalBayar = keranjangPilihan.reduce((acc, curr) => acc + curr.harga, 0);
+      const poinDidapat = keranjangPilihan.length * 2;
+
+      const payload = {
+        id_booking: idBooking,
+        id_member: dataMemberLogin ? dataMemberLogin.id_member : null,
+        nama: nama,
+        no_hp: noHp,
+        lokasi: namaLokasiTerpilih,
+        tanggal: tanggalAktif,
+        detail_jam: detailJamStr,
+        total_bayar: totalBayar,
+        poin_didapat: poinDidapat,
+        bukti_transfer: base64BuktiTransfer
+      };
+
+      try {
+        const res = await fetch('/api/booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error);
+
+        alert(`✅ Booking Member Berhasil!\n\nID Booking: ${idBooking}\nTotal: Rp ${totalBayar.toLocaleString('id-ID')}\nPoin Member Diperoleh: +${poinDidapat}\n\nSilakan menunggu verifikasi admin.`);
+        window.location.reload();
+      } catch (err) {
+        alert("❌ Gagal melakukan booking: " + err.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      inisialisasi();
+    });
+  </script>
+</body>
+</html>
