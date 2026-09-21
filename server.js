@@ -63,7 +63,7 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Route halaman booking (jika diakses terpisah)
+// Route halaman booking
 app.get('/booking', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'booking.html'));
 });
