@@ -12,7 +12,6 @@
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* Kartu VIP Virtual Desain Elegan & Tema Login */
     .vip-card, .login-box-boss {
       width: 100%; max-width: 420px; 
       background: radial-gradient(circle at center, #133a25 0%, #081c10 100%);
@@ -40,11 +39,18 @@
     
     .member-photo-frame { 
       width: 105px; height: 130px; border: 2px solid #d4af37; border-radius: 12px 12px 6px 6px; 
-      overflow: hidden; background: #000; flex-shrink: 0; display: flex; align-items: center; justify-content: center; 
-      box-shadow: 0 6px 15px rgba(0,0,0,0.4); 
+      overflow: hidden; background: #000; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4); position: relative;
     }
     .member-photo-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; background-color: #000; }
     
+    .btn-upload-overlay {
+      position: absolute; bottom: 0; inset-x: 0; background: rgba(13, 40, 24, 0.85); color: #f3e5ab;
+      font-size: 9.5px; font-weight: bold; text-align: center; padding: 4px 0; cursor: pointer; border-top: 1px solid #d4af37;
+      transition: background 0.2s;
+    }
+    .btn-upload-overlay:hover { background: #0d2818; color: #ffffff; }
+
     .member-info-right { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: left; position: relative; z-index: 2; }
     .member-id-vip { font-size: 18px; font-weight: 800; color: #d4af37; letter-spacing: 0.5px; margin-bottom: 2px; }
     .member-name-vip { font-size: 15px; font-weight: 800; color: #ffffff; text-transform: uppercase; margin-bottom: 8px; line-height: 1.25; word-break: break-word; }
@@ -60,7 +66,7 @@
   <div id="loginSection" class="login-box-boss text-center mt-16">
     <div class="card-header-vip">
       <div class="vip-badge-box">
-        <span class="vip-badge-text">VIP PORTAL</span>
+        <span class="vip-badge-text">BOSS MEMBERSHIP</span>
       </div>
       <div class="card-logo-container">
         <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
@@ -72,7 +78,7 @@
     <div class="space-y-3.5 text-left mb-6 relative z-25">
       <div>
         <label class="block text-xs font-bold text-[#f3e5ab] mb-1">ID Member:</label>
-        <input type="text" id="loginId" placeholder="CONTOH: PB0015" class="w-full p-2.5 bg-black/40 border border-[#d4af37]/40 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#d4af37]">
+        <input type="text" id="loginId" placeholder="CONTOH: PB0014" class="w-full p-2.5 bg-black/40 border border-[#d4af37]/40 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#d4af37]">
       </div>
       <div>
         <label class="block text-xs font-bold text-[#f3e5ab] mb-1">Nomor WhatsApp:</label>
@@ -119,6 +125,8 @@
     <div id="tab-content-card" class="max-w-md mx-auto px-4 mt-8 space-y-5">
       <div id="memberCardContainer"></div>
 
+      <input type="file" id="inputUploadFoto" accept="image/*" class="hidden" onchange="prosesUploadFoto(this)">
+
       <div class="space-y-2.5 text-center">
         <button onclick="downloadKartuPDF()" class="w-full bg-[#0d2818] hover:bg-[#14382d] text-[#f3e5ab] py-3 rounded-xl font-bold text-xs shadow border border-[#d4af37] transition flex items-center justify-center gap-2">
           📥 Download Kartu PDF
@@ -128,13 +136,24 @@
         </button>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-left text-xs">
-        <h4 class="font-bold text-[#0d2818] border-b border-slate-200 pb-1.5 mb-2">Benefit Spesial Membership:</h4>
-        <ul class="space-y-1.5 text-slate-600">
-          <li>☀️ Pagi (06:00 - 18:00): <strong class="text-emerald-700">Rp 69.000 / jam</strong></li>
-          <li>🌙 Malam (18:00 - 22:00): <strong class="text-emerald-700">Rp 99.000 / jam</strong></li>
-          <li>💬 Booking Manual Admin: <strong>+62 851-3806-0260</strong></li>
-        </ul>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-left text-xs space-y-3">
+        <div>
+          <h4 class="font-bold text-[#0d2818] border-b border-slate-200 pb-1.5 mb-2">Benefit Spesial Membership:</h4>
+          <ul class="space-y-1.5 text-slate-600">
+            <li>☀️ Pagi (06:00 - 18:00): <strong class="text-emerald-700">Rp 69.000 / jam</strong></li>
+            <li>🌙 Malam (18:00 - 22:00): <strong class="text-emerald-700">Rp 99.000 / jam</strong></li>
+            <li>💬 Booking Manual via WA Admin: <strong class="text-emerald-700">+62 851-3806-0260</strong></li>
+          </ul>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-300 p-3 rounded-xl text-amber-900 space-y-1">
+          <p class="font-bold text-xs mb-1">🏦 Info No Rekening Padel Boss Resmi:</p>
+          <p class="text-xs">BCA: <strong class="text-sm tracking-wide text-[#0d2818]">0856-288-999</strong></p>
+          <p class="text-xs">A/N: <strong class="font-bold text-slate-900">Shirleen Yovita Wijaya atau Deasy Liunardo</strong></p>
+          <p class="text-[11px] text-red-700 font-bold mt-2 pt-1 border-t border-amber-200">
+            ⚠️ JANGAN TRANSFER DILUAR NO REKENING DI ATAS UNTUK PEMBAYARAN APAPUN KE PADEL BOSS MENGGER, MANAGEMENT PADEL TIDAK BERTANGGUNG JAWAB JIKA ADA TRANSFER KE NO REKENING SELAIN DI ATAS.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -311,8 +330,6 @@
   </div>
 
   <script>
-    let rawMembersList = [];
-    let currentSubFilter = 'all';
     let lokasiAktif = "boss_mengger";
     let tanggalAktif = "";
     let slotTerpakai = [];
@@ -352,7 +369,7 @@
         });
         const result = await res.json();
 
-        if (result.success) {
+        if (res.ok && result.success) {
           errorDiv.classList.add('hidden');
           activeMemberData = result.data;
           document.getElementById('loginSection').classList.add('hidden');
@@ -365,7 +382,8 @@
           errorDiv.classList.remove('hidden');
         }
       } catch (err) {
-        alert('Gagal terhubung ke backend server.');
+        errorDiv.innerText = "Gagal terhubung ke backend server.";
+        errorDiv.classList.remove('hidden');
       }
     }
 
@@ -407,7 +425,8 @@
 
     function tampilkanKartuMember(m) {
       document.getElementById('top-member-badge').innerText = `${m.nama_member} (${m.id_member})`;
-      const fotoUrl = fotoDatabase[m.id_member] || 'https://via.placeholder.com/100x125?text=No+Foto';
+      
+      let fotoSrc = m.foto || fotoDatabase[m.id_member] || 'https://via.placeholder.com/100x125?text=Foto';
       const statusColor = m.status === 'Aktif' ? '#2ecc71' : '#e74c3c';
 
       document.getElementById('memberCardContainer').innerHTML = `
@@ -415,7 +434,7 @@
           <div class="vip-card">
             <div class="card-header-vip">
               <div class="vip-badge-box">
-                <span class="vip-badge-text">MEMBERSHIP</span>
+                <span class="vip-badge-text">BOSS MEMBERSHIP</span>
               </div>
               <div class="card-logo-container">
                 <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
@@ -426,7 +445,8 @@
 
             <div class="card-main-content">
               <div class="member-photo-frame">
-                <img src="${fotoUrl}" alt="Foto Member" onerror="this.src='https://via.placeholder.com/100x125?text=No+Foto'">
+                <img id="imgPreviewMember" src="${fotoSrc}" alt="Foto Member" onerror="this.src='https://via.placeholder.com/100x125?text=Foto'">
+                <div class="btn-upload-overlay" onclick="triggerUploadFoto()">Ganti Foto</div>
               </div>
               <div class="member-info-right">
                 <div class="member-id-vip">${m.id_member}</div>
@@ -444,6 +464,40 @@
           </div>
         </div>
       `;
+    }
+
+    function triggerUploadFoto() {
+      document.getElementById('inputUploadFoto').click();
+    }
+
+    async function prosesUploadFoto(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Foto = e.target.result;
+
+        try {
+          const res = await fetch('/api/member/foto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_member: activeMemberData.id_member, foto: base64Foto })
+          });
+          const result = await res.json();
+
+          if (result.success) {
+            activeMemberData = result.data;
+            tampilkanKartuMember(activeMemberData);
+            alert("✅ Foto profil berhasil diperbarui!");
+          } else {
+            alert("Gagal mengunggah foto: " + result.error);
+          }
+        } catch (err) {
+          alert("Terjadi kesalahan saat mengunggah foto.");
+        }
+      };
+      reader.readAsDataURL(file);
     }
 
     function downloadKartuPDF() {
