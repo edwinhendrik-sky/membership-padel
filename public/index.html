@@ -12,7 +12,7 @@
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* Kartu VIP Virtual Desain Elegan Baru & Tema Login */
+    /* Kartu VIP Virtual Desain Elegan & Tema Login */
     .vip-card, .login-box-boss {
       width: 100%; max-width: 420px; 
       background: radial-gradient(circle at center, #133a25 0%, #081c10 100%);
@@ -20,7 +20,6 @@
       box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(212,175,55,0.25); 
       position: relative; overflow: hidden; margin: 0 auto; box-sizing: border-box;
     }
-    /* Watermark Logo Tile Halus di Background Kartu */
     .vip-card::before, .login-box-boss::before {
       content: ""; position: absolute; inset: 0; 
       background-image: radial-gradient(rgba(212,175,55,0.06) 1px, transparent 1px);
@@ -32,7 +31,6 @@
     .vip-badge-box { border: 1.5px solid #d4af37; padding: 6px 14px; border-radius: 6px; background: rgba(13,40,24,0.6); }
     .vip-badge-text { font-size: 11.5px; font-weight: 800; color: #d4af37; letter-spacing: 1.5px; text-transform: uppercase; }
     
-    /* Logo Diperbesar Maksimal di Header Tanpa Mengubah Tinggi Layout */
     .card-logo-container { height: 44px; display: flex; align-items: center; justify-content: flex-end; position: relative; z-index: 2; }
     .card-logo-img { height: 75px; width: auto; object-fit: contain; mix-blend-mode: screen; transform: scale(1.4); transform-origin: center right; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
     
@@ -40,7 +38,6 @@
 
     .card-main-content { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; position: relative; z-index: 2; }
     
-    /* Frame Foto Elegan Berkelengkungan Estetik */
     .member-photo-frame { 
       width: 105px; height: 130px; border: 2px solid #d4af37; border-radius: 12px 12px 6px 6px; 
       overflow: hidden; background: #000; flex-shrink: 0; display: flex; align-items: center; justify-content: center; 
@@ -66,7 +63,7 @@
         <span class="vip-badge-text">VIP PORTAL</span>
       </div>
       <div class="card-logo-container">
-        <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/public/boss.png';">
+        <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
       </div>
     </div>
 
@@ -95,7 +92,7 @@
       <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-2">
         <div class="flex items-center space-x-2">
           <div class="bg-emerald-950 px-2 py-0.5 rounded-lg border border-emerald-800 flex items-center justify-center">
-            <img src="boss.png" alt="Logo Padel Boss" style="height: 28px; width: auto; object-fit: contain; mix-blend-mode: screen;" onerror="this.onerror=null; this.src='/public/boss.png';">
+            <img src="boss.png" alt="Logo Padel Boss" style="height: 28px; width: auto; object-fit: contain; mix-blend-mode: screen;" onerror="this.onerror=null; this.src='/boss.png';">
           </div>
           <div>
             <h1 class="font-black text-xs text-amber-300 tracking-wider">PADEL BOSS MENGGER</h1>
@@ -228,7 +225,7 @@
             <span class="vip-badge-text">INVOICE</span>
           </div>
           <div class="card-logo-container">
-            <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/public/boss.png';">
+            <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
           </div>
         </div>
 
@@ -314,7 +311,6 @@
   </div>
 
   <script>
-    const API_URL = 'http://localhost:3000/members';
     let rawMembersList = [];
     let currentSubFilter = 'all';
     let lokasiAktif = "boss_mengger";
@@ -349,7 +345,7 @@
       }
 
       try {
-        const res = await fetch('http://localhost:3000/login', {
+        const res = await fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id_member, no_wa })
@@ -422,7 +418,7 @@
                 <span class="vip-badge-text">MEMBERSHIP</span>
               </div>
               <div class="card-logo-container">
-                <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/public/boss.png';">
+                <img src="boss.png" alt="Padel Boss Logo" class="card-logo-img" onerror="this.onerror=null; this.src='/boss.png';">
               </div>
             </div>
             
@@ -511,7 +507,7 @@
       keranjangPilihan = [];
       updateRingkasan();
       try {
-        const res = await fetch(`http://localhost:3000/api/booking/terpakai?tanggal=${tanggalAktif}`);
+        const res = await fetch(`/api/booking/terpakai?tanggal=${tanggalAktif}`);
         slotTerpakai = res.ok ? await res.json() : [];
       } catch (err) {
         slotTerpakai = [];
@@ -747,7 +743,7 @@
         };
 
         try {
-          const res = await fetch('http://localhost:3000/api/booking', {
+          const res = await fetch('/api/booking', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payloadBooking)
@@ -770,7 +766,7 @@
     async function muatRiwayatMember() {
       if (!activeMemberData) return;
       try {
-        const res = await fetch(`http://localhost:3000/api/booking/member/${activeMemberData.id_member}`);
+        const res = await fetch(`/api/booking/member/${activeMemberData.id_member}`);
         window.memberRiwayatList = await res.json();
         const tbody = document.getElementById('tabel-riwayat-booking');
 
