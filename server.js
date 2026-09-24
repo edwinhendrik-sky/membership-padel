@@ -225,7 +225,7 @@ app.put('/members/:id', (req, res) => {
             });
         }
 
-        const sql = `UPDATE members SET nama_member = ?, no_wa = ?, tgl_aktivasi = ?, tgl_expired, status = ? WHERE id = ?`;
+        const sql = `UPDATE members SET nama_member = ?, no_wa = ?, tgl_aktivasi = ?, tgl_expired = ?, status = ? WHERE id = ?`;
         db.run(sql, [nama_member, cleanWa, tgl_aktivasi, tgl_expired, status, req.params.id], function(err) {
             if (err) return res.status(500).json({ success: false, error: err.message });
             res.json({ success: true, message: "Data berhasil diupdate" });
