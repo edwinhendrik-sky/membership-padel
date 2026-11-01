@@ -112,31 +112,31 @@ app.get('/api/booking/terpakai', (req, res) => {
     });
 });
 
-// Endpoint Submit Booking
+// Endpoint Submit Booking (Bukti Transfer Dibuat Opsional)
 app.post('/api/booking', (req, res) => {
     const { id_booking, id_member, nama, no_hp, lokasi, tanggal, detail_jam, total_bayar, bukti_transfer } = req.body;
     
-    if (!bukti_transfer) {
-        return res.status(400).json({ error: "Bukti transfer wajib diunggah!" });
-    }
+    // Validasi bukti_transfer dihapus agar menjadi opsional (bisa bernilai null atau string kosong)
+    const finalBukti = bukti_transfer ? bukti_transfer : null;
+    const statusPayment = finalBukti ? 'Menunggu Cek' : 'Belum Upload Bukti';
 
     const sql = `INSERT INTO bookings (id_booking, id_member, nama, no_hp, lokasi, tanggal, detail_jam, total_bayar, status_booked, status_payment, status_ayo, bukti_transfer) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Booked', 'Menunggu Cek', 'Pending AYO', ?)`;
-    db.run(sql, [id_booking, id_member, nama, no_hp, lokasi, tanggal, detail_jam, total_bayar, bukti_transfer], function(err) {
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Booked', ?, 'Pending AYO', ?)`;
+    
+    db.run(sql, [id_booking, id_member, nama, no_hp, lokasi, tanggal, detail_jam, total_bayar, statusPayment, finalBukti], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, message: "Booking berhasil dicatat", id_booking });
     });
 });
 
-// Endpoint Update Bukti Transfer Member (Edit Bukti)
+// Endpoint Update Bukti Transfer Member (Edit Bukti - Opsional)
 app.put('/api/booking/bukti/:id', (req, res) => {
     const { bukti_transfer } = req.body;
-    if (!bukti_transfer) {
-        return res.status(400).json({ error: "Bukti transfer wajib diunggah!" });
-    }
+    const finalBukti = bukti_transfer ? bukti_transfer : null;
+    const statusPayment = finalBukti ? 'Menunggu Cek' : 'Belum Upload Bukti';
 
-    const sql = `UPDATE bookings SET bukti_transfer = ?, status_payment = 'Menunggu Cek' WHERE id = ?`;
-    db.run(sql, [bukti_transfer, req.params.id], function(err) {
+    const sql = `UPDATE bookings SET bukti_transfer = ?, status_payment = ? WHERE id = ?`;
+    db.run(sql, [finalBukti, statusPayment, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, message: "Bukti transfer berhasil diperbarui" });
     });
