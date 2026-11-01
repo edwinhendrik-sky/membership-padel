@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Sistem Manajemen Admin - Padel Boss Mengger Bandung</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -129,7 +130,7 @@
             <div class="max-w-6xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-2">
                 <div class="flex items-center space-x-2.5">
                     <div class="bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800 flex items-center justify-center">
-                        <img src="boss.png" alt="Logo Padel Boss" style="height: 30px; width: auto; object-fit: contain; mix-blend-mode: screen;" onerror="this.onerror=null; this.src='/boss.png';">
+                        <img src="boss.png" alt="Logo Padel Boss" style="height: 30px; width: auto; object-fit: contain; mix-blend-mode: screen;" onerror="this.src='/boss.png';">
                     </div>
                     <div>
                         <h1 id="dashboardTitle" class="font-black text-xs text-amber-300 tracking-wider">ADMIN MANAGEMENT - PADEL BOSS</h1>
@@ -310,6 +311,14 @@
             "PB0048": "PB0048.png", "PB0051": "PB0051.jpeg"
         };
 
+        // CEK OTOMATIS SESI LOGIN DARI LOCALSTORAGE SAAT HALAMAN DIMUAT
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('padel_admin_logged');
+            if (savedUser && dbCredentials[savedUser]) {
+                aktifkanDashboard(savedUser);
+            }
+        });
+
         function togglePasswordVisibility() {
             const passInput = document.getElementById('adminPass');
             passInput.type = passInput.type === 'password' ? 'text' : 'password';
@@ -448,20 +457,28 @@
 
             if (dbCredentials[user] && dbCredentials[user] === pass) {
                 errDiv.style.display = 'none';
-                document.getElementById('adminLoginSection').style.display = 'none';
-                document.getElementById('adminDashboardSection').style.display = 'block';
+                
+                // SIMPAN KE LOCALSTORAGE AGAR TIDAK HILANG SAAT REFRESH
+                localStorage.setItem('padel_admin_logged', user);
 
-                loggedInUsername = user;
-                if (user === 'management') currentRole = 'management';
-                else if (user === 'admin') currentRole = 'admin';
-                else if (user === 'Finance') currentRole = 'finance';
-
-                setupRolePermissions();
-                loadMembers();
-                loadAdminBookings();
+                aktifkanDashboard(user);
             } else {
                 errDiv.style.display = 'block';
             }
+        }
+
+        function aktifkanDashboard(user) {
+            document.getElementById('adminLoginSection').style.display = 'none';
+            document.getElementById('adminDashboardSection').style.display = 'block';
+
+            loggedInUsername = user;
+            if (user === 'management') currentRole = 'management';
+            else if (user === 'admin') currentRole = 'admin';
+            else if (user === 'Finance') currentRole = 'finance';
+
+            setupRolePermissions();
+            loadMembers();
+            loadAdminBookings();
         }
 
         function setupRolePermissions() {
@@ -481,6 +498,7 @@
         }
 
         function logoutAdmin() {
+            localStorage.removeItem('padel_admin_logged');
             currentRole = '';
             loggedInUsername = '';
             document.getElementById('adminDashboardSection').style.display = 'none';
