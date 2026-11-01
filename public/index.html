@@ -322,8 +322,10 @@
       </div>
 
       <div>
-        <label class="block text-[11px] font-bold text-slate-700 mb-1">Upload Bukti Transfer (Wajib):</label>
+        <!-- DIBUAT JADI OPSIONAL -->
+        <label class="block text-[11px] font-bold text-slate-700 mb-1">Upload Bukti Transfer (Opsional):</label>
         <input type="file" id="fileBukti" accept="image/*" class="w-full text-xs border border-slate-300 p-2 rounded-xl bg-slate-50">
+        <p class="text-[10px] text-slate-400 mt-1">Boleh dikosongkan jika ingin konfirmasi atau membayar langsung nanti.</p>
       </div>
 
       <div class="flex space-x-2 pt-2">
@@ -774,15 +776,9 @@
 
     async function kirimBookingDanBukti() {
       const fileInput = document.getElementById('fileBukti');
-      if (!fileInput.files[0]) {
-        alert("⚠️ Anda wajib mengunggah foto bukti transfer!");
-        return;
-      }
 
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        const buktiBase64 = e.target.result;
-
+      // Fungsi untuk mengeksekusi pengiriman data ke server (baik ada file maupun kosong/opsional)
+      const lanjutkanKirimData = async (buktiBase64 = null) => {
         const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).replace(/-/g, '');
         const idBooking = `BKG-${todayStr}-${Math.floor(100 + Math.random() * 900)}`;
         const namaLokasiTerpilih = lokasiAktif === 'boss_mengger' ? 'Padel Boss Mengger' : 'Padel Del Luna';
@@ -811,7 +807,7 @@
           if (!res.ok) throw new Error(result.error || "Gagal menyimpan booking");
 
           tutupModalKonfirmasi();
-          alert(`✅ Booking & Bukti Transfer Berhasil Dikirim!\nID Booking: ${idBooking}\nSilakan menunggu verifikasi status PAID dari admin.`);
+          alert(`✅ Booking Berhasil Dikirim!\nID Booking: ${idBooking}\nSilakan menunggu proses verifikasi selanjutnya.`);
           
           keranjangPilihan = [];
           switchTab('riwayat');
@@ -819,7 +815,17 @@
           alert("Gagal: " + err.message);
         }
       };
-      reader.readAsDataURL(fileInput.files[0]);
+
+      // Jika file dipilih, baca sebagai base64, jika tidak langsung kirim dengan null
+      if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          await lanjutkanKirimData(e.target.result);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        await lanjutkanKirimData(null);
+      }
     }
 
     function triggerEditBukti(dbId) {
